@@ -34,7 +34,7 @@ router.post("/login", async (req, res) => {
 		originalPassword !== req.body.password &&
 			res.status(401).json("Invalid username or password");
 
-        const accessToken = jwt.sign({id:user._id, isAdmin:user.Admin}, process.env.SECRET_KEY, {expiresIn:"24h"});    
+        const accessToken = jwt.sign({id:user._id, isAdmin:user.isAdmin}, process.env.SECRET_KEY, {expiresIn:"24h"});    
 
         const {password , ...info} = user._doc;
 
