@@ -28,6 +28,7 @@ router.put('/:id', verify, async (req, res) => {
 
 // DELETE
 router.delete('/:id', verify, async (req, res) => {
+    console.log("delete",req.user.id === req.params.id || req.user.isAdmin)
     if(req.user.id === req.params.id || req.user.isAdmin) {
         try{
            await User.findByIdAndDelete(req.params.id);
@@ -55,9 +56,9 @@ router.get("/find/:id", async (req, res) => {
 router.get("/", verify ,async (req, res) => {
     const query = req.query.new;
     // console.log(req.user.isAdmin);
-    if(!req.user.isAdmin) {
+    if(req.user.isAdmin) {
         try{
-            const users = query ? await User.find().sort({_id:-1}).limit(10) : await User.find();
+            const users = query ? await User.find().sort({_id:-1}).limit(6) : await User.find();
             res.status(200).json(users)
         }catch(err){
             res.status(500).json(err);
@@ -69,24 +70,24 @@ router.get("/", verify ,async (req, res) => {
 
 
 // GET USER STATS
-router.get("/stats", async (req, res) => {
+router.get("/stats", verify, async (req, res) => {
     const today = new Date();
     const latYear = today.setFullYear(today.setFullYear() - 1);
     const monthsArray = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     try{
         const data = await User.aggregate([
-            {
-                $project:{
-                    month:{ $month: "$createdAt"},
+                {
+                    $project:{
+                        month:{ $month: "$createdAt"},
+                    },
+                }, 
+                {
+                    $group:{
+                        _id: "$month",
+                        total: { $sum:1 },
+                    },
                 },
-            }, 
-            {
-                $group:{
-                    _id: "$month",
-                    total: { $sum:1 },
-                },
-            },
-        ]);
+            ]);
         res.status(200).json(data);
     } catch(err){
         res.status(500).json(err);
